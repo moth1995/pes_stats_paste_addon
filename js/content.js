@@ -111,7 +111,7 @@ function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
  * @param {Element} el - DOM element to inspect.
  * @returns {string} First non-empty text found.
  */
-function firstDirectText(el) {
+function firstAnyText(el) {
   for (const n of el.childNodes) {
     if (n.nodeType === Node.TEXT_NODE || n.nodeType === Node.ELEMENT_NODE) {
       const t = (n.textContent || "").trim();
@@ -122,16 +122,31 @@ function firstDirectText(el) {
 }
 
 /**
- * Finds a label element whose first text content matches the provided string.
- * @param {Element} root - Root container to search within.
- * @param {string} text - Exact label text to match.
- * @returns {Element|null} Label element or null if not found.
+ * Extracts the first direct text from a given element.
+ * @param {Element} el - DOM element to inspect.
+ * @returns {string} First non-empty text found.
  */
-function getLabelByText(root, text) {
-  const labels = root.querySelectorAll("label");
-  for (const label of labels) {
-    if (firstDirectText(label) === text) {
-      return label;
+function firstDirectText(el) {
+  for (const node of el.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = node.textContent.trim();
+      if (t) return t;
+    }
+  }
+  return "";
+}
+/**
+ * Finds a element whose first text content matches the provided string.
+ * @param {Element} root - Root container to search within.
+ * @param {string} text - Exact text to match.
+ * @returns {Element|null} Element or null if not found.
+ */
+function getElementByText(root, text) {
+  // so far the web followed this format labels and divs
+  const matches = root.querySelectorAll("label, div");
+  for (const el of matches) {
+    if (firstAnyText(el) === text) {
+      return el;
     }
   }
   return null;
@@ -179,19 +194,19 @@ function setReactSelect(radio) {
 }
 
 /**
- * Sets the value of an input field based on its label text.
+ * Sets the value of an input field based on its element text.
  * @param {Element} root - Root container to search within.
- * @param {string} labelText - Exact text of the label.
+ * @param {string} elText - Exact text of the element.
  * @param {string|number} value - Value to set.
  * @returns {boolean} True if the input was found and set, otherwise false.
  */
-function setInputByLabelText(root, labelText, value) {
+function setInputByElementText(root, elText, value) {
   if (value==null) return false;
 
-  const label = getLabelByText(root, labelText);
-  if (!label) return false;
+  const el = getElementByText(root, elText);
+  if (!el) return false;
 
-  const input = label.querySelector("input");
+  const input = el.querySelector("input");
   if (!input) return false;
 
   setReactValue(input, value);
@@ -199,37 +214,37 @@ function setInputByLabelText(root, labelText, value) {
 }
 
 /**
- * Sets the state of a checkbox based on its label text.
+ * Sets the state of a checkbox based on its element text.
  * @param {Element} root - Root container to search within.
- * @param {string} labelText - Exact text of the label.
+ * @param {string} elText - Exact text of the element.
  * @param {boolean} value - Boolean value to set.
  * @returns {boolean} True if checkbox was found and set, otherwise false.
  */
-function setCheckboxByLabelText(root, labelText, value) {
+function setCheckboxByElementText(root, elText, value) {
   if (value==null) return false;
 
-  const label = getLabelByText(root, labelText);
-  if (!label) return false;
+  const el = getElementByText(root, elText);
+  if (!el) return false;
 
-  const input = label.querySelector("input[type='checkbox']");
-  if (!input) return false;
+  const checkbox = el.querySelector("input[type='checkbox']");
+  if (!checkbox) return false;
 
-  setReactChecked(input, value);
+  setReactChecked(checkbox, value);
   return true;
 }
 
 /**
- * Selects a radio button option by its label and value.
+ * Selects a radio button option by its element and value.
  * @param {Element} root - Root container to search within.
- * @param {string} labelText - Label text that identifies the field.
+ * @param {string} elText - element text that identifies the field.
  * @param {string} value - Desired radio value (e.g., "A", "B", "C").
  * @returns {Promise<boolean>} True if radio was found and set, otherwise false.
  */
-async function setSelectByLabelText(root, labelText, value) {
-  const label = getLabelByText(root, labelText);
-  if (!label) return false;
+async function setSelectByElementText(root, elText, value) {
+  const el = getElementByText(root, elText);
+  if (!el) return false;
 
-  const radio = label.querySelector(`input[type="radio"][value="${value}"]`);
+  const radio = el.querySelector(`input[type="radio"][value="${value}"]`);
   if (!radio) return false;
 
   try { radio.click(); } catch(_) {}
@@ -244,28 +259,31 @@ async function setSelectByLabelText(root, labelText, value) {
 }
 
 /**
- * Opens and selects a nationality/country from a dropdown by label text.
+ * Opens and selects a nationality/country from a dropdown by element text.
  * @param {Element} root - Root container to search within.
- * @param {string} labelText - Label text identifying the nationality field.
+ * @param {string} elText - Element text identifying the nationality field.
  * @param {string} country - Country name to select.
  * @returns {Promise<boolean>} True if country was selected, otherwise false.
  */
-async function setNationality(root, labelText, country) {
+async function setNationality(root, elText, country) {
   let trigger = null;
-  const label = getLabelByText(root, labelText);
-  if (!label) return false;
+  const el = getElementByText(root, elText);
+  if (!el) return false;
 
-  trigger = label.querySelector("button");
+  trigger = el.querySelector("button");
   if (!trigger) return false;
 
   trigger.click();
   await wait(60);
 
-  const opt = Array.from(label.querySelectorAll("button"))
+  const opt = Array.from(el.querySelectorAll("button"))
     .find(b => firstDirectText(b) === country);
-  if (!opt) {
+  if (!opt && country === "- Others"){
+    return false;
+  }
+  else if (!opt) {
     // fallback in case the nationality wasn't found
-    return await setNationality(root, labelText, "- Others");
+    return await setNationality(root, elText, "- Others");
   }
 
   opt.click();
@@ -338,7 +356,7 @@ function fillCOMPlayingstyles(comPlayingStyles) {
   setAllCheckboxesToValue(root, false);
   
   for (const k in comPlayingStyles) {
-    if (!setCheckboxByLabelText(root, k, comPlayingStyles[k])) {
+    if (!setCheckboxByElementText(root, k, comPlayingStyles[k])) {
       console.log("error trying to set skill:", k, "to value:", comPlayingStyles[k]);
     }
   }
@@ -358,7 +376,7 @@ function fillPlayerSkills(playerSkills) {
   setAllCheckboxesToValue(root, false);
   
   for (const k in playerSkills) {
-    if (!setCheckboxByLabelText(root, k, playerSkills[k])) {
+    if (!setCheckboxByElementText(root, k, playerSkills[k])) {
       console.log("error trying to set skill:", k, "to value:", playerSkills[k]);
     }
   }
@@ -375,7 +393,7 @@ function fillAbility(stats) {
     return;
   }
   for (const k in stats) {
-    if (!setInputByLabelText(root, k, stats[k])) {
+    if (!setInputByElementText(root, k, stats[k])) {
       console.log("error trying to set ability:", k, "to value:", stats[k])
     };
   }
@@ -393,27 +411,27 @@ async function fillInfo(player) {
   }
 
   // basic
-  if (!setInputByLabelText(root, "Player Name", player.basic["Name"])) {
+  if (!setInputByElementText(root, "Player Name", player.basic["Name"])) {
     console.log("error trying to set Player Name to: ", player.basic["Name"]);
   }
   
-  if (!setInputByLabelText(root, "Shirt name (club)", player.basic["Shirt Name"])) {
+  if (!setInputByElementText(root, "Shirt name (club)", player.basic["Shirt Name"])) {
     console.log("error trying to set Shirt name (club) to: ", player.basic["Shirt Name"]);
   }
 
-  if (!setInputByLabelText(root, "Shirt name (national team)", player.basic["Shirt Name"])) {
+  if (!setInputByElementText(root, "Shirt name (national team)", player.basic["Shirt Name"])) {
     console.log("error trying to set Shirt name (national team) to: ", player.basic["Shirt Name"]);
   }
 
-  if (!setInputByLabelText(root, "Age", player.basic["Age"])) {
+  if (!setInputByElementText(root, "Age", player.basic["Age"])) {
     console.log("error trying to set Age to: ", player.basic["Age"]);
   }
 
-  if (!await setSelectByLabelText(root, "Stronger Foot", player.basic["Foot"])){
+  if (!await setSelectByElementText(root, "Stronger Foot", player.basic["Foot"])){
     console.log("error trying to set Stronger Foot to: ", player.basic["Foot"]);
   }
 
-  if (!setInputByLabelText(root, "Reputation", player.basic["Reputation"])) {
+  if (!setInputByElementText(root, "Reputation", player.basic["Reputation"])) {
     console.log("error trying to set Reputation to: ", player.basic["Reputation"]);
   }
 
@@ -422,15 +440,15 @@ async function fillInfo(player) {
   }
 
   // appearance
-  if (!setInputByLabelText(root, "Height (cm)", parseInt(player.appearance["Height"]))) {
+  if (!setInputByElementText(root, "Height (cm)", parseInt(player.appearance["Height"]))) {
     console.log("error trying to set Height (cm) to: ", player.appearance["Height"]);
   }
-  if (!setInputByLabelText(root, "Weight (kg)",  parseInt(player.appearance["Weight"]))) {
+  if (!setInputByElementText(root, "Weight (kg)",  parseInt(player.appearance["Weight"]))) {
     console.log("error trying to set Weight (kg) to: ", player.appearance["Weight"]);
   }
 
   // // playing style
-  // if (!setInputByLabelText(root, "Playing Style", player.playingStyle)) {
+  // if (!setInputByElementText(root, "Playing Style", player.playingStyle)) {
   //   console.log("error trying to set Playing Style to: ", player.playingStyle);
   // }
 
@@ -447,7 +465,7 @@ async function fillPosition(player) {
     return;
   }
 
-  if (!setInputByLabelText(root, "Registered Position", player.basic["Registered Position"])) {
+  if (!setInputByElementText(root, "Registered Position", player.basic["Registered Position"])) {
     console.log("Error trying to set Registered Position to:", player.basic["Registered Position"]);
   }
 
@@ -455,12 +473,12 @@ async function fillPosition(player) {
   await setAllRadiosToValue(root, "C");
 
   // now we set all the positions correct values
-  if (! await setSelectByLabelText(root, player.basic["Registered Position"], "A")){
+  if (! await setSelectByElementText(root, player.basic["Registered Position"], "A")){
     console.log("Error trying to set Position", player.basic["Registered Position"], "to: A");
   }
 
   for (const k in player.positions) {
-    if (!await setSelectByLabelText(root, k, player.positions[k])){
+    if (!await setSelectByElementText(root, k, player.positions[k])){
       console.log("Error trying to set Position", k, "to:", player.positions[k]);
     }
   }
