@@ -4,7 +4,7 @@ This project is a **userscript / content script** in pure JavaScript that adds a
 
 > **Stack**: Plain JavaScript (no React/TS), DOM APIs, React-compatible input/change events.
 
-[Preview](img/preview.png).
+![Preview](img/preview.png).
 
 ---
 
