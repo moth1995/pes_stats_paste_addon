@@ -91,7 +91,7 @@ Creative Playmaker
 
 ## 🧩 Installation as Extension
 
-### Chrome / Edge (Manifest V3)
+### Chrome / Edge
 
 1. Download and extract the .zip from https://github.com/moth1995/pes_stats_paste_addon/releases/latest.
 2. Open `chrome://extensions` ➜ enable **Developer mode**.
@@ -101,18 +101,17 @@ Creative Playmaker
 
 ### Firefox
 
-1. Go to `about:debugging#/runtime/this-firefox`.
-2. Click **Load Temporary Add-on…** and pick `manifest.json`.
-3. Reload the target site.
-
-Firefox supports MV3. For ESR versions still on MV2, adjust accordingly.
+1. Download and extract the .zip from https://github.com/moth1995/pes_stats_paste_addon/releases/latest.
+2. Go to `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on…** and pick `manifest.json`.
+4. Reload the target site.
 
 ---
 
 ## ▶️ Usage
 
 1. Navigate to the **Players** tab on the TEditor app website.
-2. Copy player data text into the **clipboard** (Ctrl/Cmd+C).
+2. Copy player data text into the **clipboard**.
 3. Click **Paste Stats** (floating button bottom-right).
 4. Done!
 
@@ -123,7 +122,7 @@ Firefox supports MV3. For ESR versions still on MV2, adjust accordingly.
 
 ## 🩹 Troubleshooting
 
-> If by any chance you're not able to use this extension or something is not working properly, please press F12 make a screen shot and open an issue, or report it on evoweb
+> If by any chance you're not able to use this extension or something is not working properly, please press F12 make a screenshot and open an issue, or report it on evoweb
 
 ---
 
