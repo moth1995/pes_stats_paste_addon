@@ -4,6 +4,8 @@ This project is a **userscript / content script** in pure JavaScript that adds a
 
 > **Stack**: Plain JavaScript (no React/TS), DOM APIs, React-compatible input/change events.
 
+[Preview](img/preview.png).
+
 ---
 
 ## ✨ Features
@@ -91,7 +93,7 @@ Creative Playmaker
 
 ### Chrome / Edge (Manifest V3)
 
-1. Create a folder (e.g. `pes-paste-ext/`) and place `manifest.json`, `content.js`, and `README.md` inside.
+1. Download and extract the .zip from https://github.com/moth1995/pes_stats_paste_addon/releases/latest.
 2. Open `chrome://extensions` ➜ enable **Developer mode**.
 3. Click **Load unpacked** ➜ select your folder.
 4. Open the target site and reload.
@@ -121,10 +123,7 @@ Firefox supports MV3. For ESR versions still on MV2, adjust accordingly.
 
 ## 🩹 Troubleshooting
 
-- **Button doesn’t appear**: ensure **Players** tab is active. Detection relies on tab text + active class.
-- **Changes not visible**: some UI updates styles on `<label>`; the script uses `click()` + setter fallback.
-- **Label mismatches**: label matching is exact; update strings or normalize if needed.
-- **Country/Region**: adjust popover search if placeholder text changes.
+> If by any chance you're not able to use this extension or something is not working properly, please press F12 make a screen shot and open an issue, or report it on evoweb
 
 ---
 
@@ -137,7 +136,7 @@ Firefox supports MV3. For ESR versions still on MV2, adjust accordingly.
 
 ## 📄 License
 
-MIT.
+[MIT](LICENSE).
 
 ---
 
