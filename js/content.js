@@ -107,13 +107,18 @@ function parsePlayerText(text) {
 function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
 
 /**
- * Extracts the first direct text or inline element's text from a given element.
- * @param {Element} el - DOM element to inspect.
+ * Extracts text from a DOM element.
+ * @param {Element} el - Element to inspect.
+ * @param {boolean} includeChildren - If true, considers child element text too.
  * @returns {string} First non-empty text found.
  */
-function firstAnyText(el) {
+function getText(el, includeChildren = false) {
   for (const n of el.childNodes) {
-    if (n.nodeType === Node.TEXT_NODE || n.nodeType === Node.ELEMENT_NODE) {
+    if (n.nodeType === Node.TEXT_NODE) {
+      const t = n.textContent.trim();
+      if (t) return t;
+    }
+    if (includeChildren && n.nodeType === Node.ELEMENT_NODE) {
       const t = (n.textContent || "").trim();
       if (t) return t;
     }
@@ -121,20 +126,6 @@ function firstAnyText(el) {
   return "";
 }
 
-/**
- * Extracts the first direct text from a given element.
- * @param {Element} el - DOM element to inspect.
- * @returns {string} First non-empty text found.
- */
-function firstDirectText(el) {
-  for (const node of el.childNodes) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const t = node.textContent.trim();
-      if (t) return t;
-    }
-  }
-  return "";
-}
 /**
  * Finds a element whose first text content matches the provided string.
  * @param {Element} root - Root container to search within.
@@ -145,7 +136,7 @@ function getElementByText(root, text) {
   // so far the web followed this format labels and divs
   const matches = root.querySelectorAll("label, div");
   for (const el of matches) {
-    if (firstAnyText(el) === text) {
+    if (getText(el, true) === text) {
       return el;
     }
   }
@@ -259,13 +250,15 @@ async function setSelectByElementText(root, elText, value) {
 }
 
 /**
- * Opens and selects a nationality/country from a dropdown by element text.
+ * Opens and selects an option from a dropdown by element text.
  * @param {Element} root - Root container to search within.
- * @param {string} elText - Element text identifying the nationality field.
- * @param {string} country - Country name to select.
- * @returns {Promise<boolean>} True if country was selected, otherwise false.
+ * @param {string} elText - Element text identifying the field.
+ * @param {string} option - Option name/text to select.
+ * @param {string} fallbackOption - Fallback option name/text to select.
+ * @param {boolean} anyText - Flag in case we need to search for any text inside the button.
+ * @returns {Promise<boolean>} True if option was selected, otherwise false.
  */
-async function setNationality(root, elText, country) {
+async function setComboboxByElementText(root, elText, option, fallbackOption, anyText = false) {
   let trigger = null;
   const el = getElementByText(root, elText);
   if (!el) return false;
@@ -277,13 +270,17 @@ async function setNationality(root, elText, country) {
   await wait(60);
 
   const opt = Array.from(el.querySelectorAll("button"))
-    .find(b => firstDirectText(b) === country);
-  if (!opt && country === "- Others"){
+    .find(b => getText(b, anyText) === option);
+  // useful condition to prevent recursion loop
+  if (!opt && option === fallbackOption){
     return false;
   }
   else if (!opt) {
-    // fallback in case the nationality wasn't found
-    return await setNationality(root, elText, "- Others");
+    // fallback in case the option wasn't found
+    console.warn("The option:", option, "wasn't found, trying to use fallback option:", fallbackOption);
+    trigger.click();
+    await wait(60);
+    return await setComboboxByElementText(root, elText, fallbackOption, fallbackOption, anyText);
   }
 
   opt.click();
@@ -435,7 +432,7 @@ async function fillInfo(player) {
     console.log("error trying to set Reputation to: ", player.basic["Reputation"]);
   }
 
-  if (!await setNationality(root, "Country/Region", player.basic["Nationality"])) {
+  if (!await setComboboxByElementText(root, "Country/Region", player.basic["Nationality"], "- Others")) {
     console.log("error trying to set Country/Region to: ", player.basic["Nationality"]);
   }
 
@@ -447,10 +444,10 @@ async function fillInfo(player) {
     console.log("error trying to set Weight (kg) to: ", player.appearance["Weight"]);
   }
 
-  // // playing style
-  // if (!setInputByElementText(root, "Playing Style", player.playingStyle)) {
-  //   console.log("error trying to set Playing Style to: ", player.playingStyle);
-  // }
+  // playing style
+  if (!await setComboboxByElementText(root, "Playing Style", player.playingStyle, "N/A", true)) {
+    console.log("error trying to set Playing Style to: ", player.playingStyle);
+  }
 
 }
 
