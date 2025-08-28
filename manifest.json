@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PES Stats Paste - By PES Indie Team",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Creates a floating button at the bottom right corner of the website that will allow you to paste your stats.",
   "permissions": ["clipboardRead"],
   "host_permissions": ["https://teditor.app/*"],
